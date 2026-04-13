@@ -3,145 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Quiz App</title>
+<title>Quiz + Admin</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#0f2027;color:#fff}
-.container{max-width:900px;margin:auto;padding:20px}
-.card{background:#203a43;padding:20px;border-radius:10px}
+body{font-family:Arial;background:#0f2027;color:#fff;margin:0;padding:20px}
+.container{max-width:900px;margin:auto}
 .option{background:#444;margin:5px 0;padding:10px;border-radius:5px;cursor:pointer}
 .selected{background:#888}
-.correct{background:green!important}
-.wrong{background:red!important}
-.progress-bar{height:10px;background:#555;border-radius:5px}
-.progress{height:10px;background:#4CAF50;width:0%}
-.timer{margin:10px 0}
-button{margin:5px;padding:10px;border:none;border-radius:5px}
+button{margin:5px;padding:10px;border:none;border-radius:5px;cursor:pointer}
 .hidden{display:none}
+.card{background:#203a43;padding:20px;border-radius:10px;margin-bottom:20px}
 </style>
-
 </head>
+
 <body>
 
 <div class="container">
 
+<!-- QUIZ -->
 <div id="quizPage" class="card">
-<h2>🚀 Full Stack Exam</h2>
-
-<div class="timer">⏱ Time: <span id="time">300</span>s</div>
-<div class="progress-bar"><div id="progress" class="progress"></div></div>
-<p>📊 Attempted: <span id="attempted">0</span>/50</p>
+<h2>Quiz</h2>
+<input id="username" placeholder="Enter your name">
 
 <div id="quiz"></div>
 
-<button onclick="prevPage()">Prev</button>
-<button onclick="nextPage()">Next</button>
 <button onclick="submitQuiz()">Submit</button>
+<button onclick="openAdmin()">Admin</button>
 </div>
 
+<!-- RESULT -->
 <div id="resultPage" class="card hidden">
-<h2>🏁 Result</h2>
+<h2>Result</h2>
 <h3 id="score"></h3>
-<div id="review"></div>
+<button onclick="location.reload()">Restart</button>
+</div>
+
+<!-- ADMIN -->
+<div id="adminPage" class="card hidden">
+<h2>Admin Panel 🔐</h2>
+
+<h3>Add Question</h3>
+<input id="q" placeholder="Question"><br>
+<input id="o1" placeholder="Option1"><br>
+<input id="o2" placeholder="Option2"><br>
+<input id="o3" placeholder="Option3"><br>
+<input id="o4" placeholder="Option4"><br>
+<input id="ans" placeholder="Correct index (0-3)"><br>
+<button onclick="addQuestion()">Add</button>
+
+<h3>Questions</h3>
+<div id="adminQuestions"></div>
+
+<h3>Student Results</h3>
+<div id="results"></div>
+
+<button onclick="closeAdmin()">Close</button>
 </div>
 
 </div>
 
 <script>
 
-// shuffle
-function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+// default questions
+let questions = JSON.parse(localStorage.getItem("questions")) || [
+{q:"HTML stands for?",options:["Hyper Text Markup Language","Wrong","Wrong","Wrong"],answer:0}
+];
 
-// questions
-const questions = shuffle([
-{q:"HTML stands for?",options:["Hyper Text Markup Language","Wrong","Wrong","Wrong"],answer:0},
-{q:"CSS used for?",options:["Logic","Styling","DB","Backend"],answer:1},
-{q:"JS runs in?",options:["Browser","DB","OS","None"],answer:0},
-{q:"React is?",options:["Framework","Library","Lang","DB"],answer:1},
-{q:"Node.js is?",options:["Frontend","Backend runtime","DB","Tool"],answer:1},
+let answers=[];
 
-...Array.from({length:45},(_,i)=>({
-q:`Question ${i+6}`,
-options:shuffle(["Correct","Wrong1","Wrong2","Wrong3"]),
-answer:0
-}))
-]);
-
-let currentPage=0;
-const perPage=10;
-let answers=new Array(50).fill(null);
-let submitted=false;
-
-// timer
-let time=300;
-setInterval(()=>{
- if(time>0 && !submitted){
-  time--;
-  document.getElementById("time").innerText=time;
- }
- if(time===0){ submitQuiz(); }
-},1000);
-
-function updateProgress(){
- document.getElementById("progress").style.width=((currentPage+1)/5)*100+"%";
-}
-
-function updateAttempted(){
- let count=answers.filter(a=>a!==null).length;
- document.getElementById("attempted").innerText=count;
-}
-
+// render quiz
 function loadQuiz(){
- let quiz=document.getElementById("quiz");
- quiz.innerHTML="";
- updateProgress();
- updateAttempted();
-
- let start=currentPage*perPage;
-
- for(let i=start;i<start+perPage;i++){
-  let q=questions[i];
-  let html=`<p>${i+1}. ${q.q}</p>`;
-
+ let html="";
+ questions.forEach((q,i)=>{
+  html+=`<p>${i+1}. ${q.q}</p>`;
   q.options.forEach((opt,j)=>{
-   let cls="option";
-   if(answers[i]===j) cls+=" selected";
-   html+=`<div class="${cls}" onclick="select(${i},${j})">${opt}</div>`;
+    html+=`<div class="option" onclick="select(${i},${j})">${opt}</div>`;
   });
-
-  quiz.innerHTML+=html;
- }
+ });
+ document.getElementById("quiz").innerHTML=html;
 }
+loadQuiz();
 
 function select(q,o){
- if(submitted) return;
  answers[q]=o;
  loadQuiz();
 }
 
-function nextPage(){ if(currentPage<4){currentPage++; loadQuiz();} }
-function prevPage(){ if(currentPage>0){currentPage--; loadQuiz();} }
-
+// submit
 function submitQuiz(){
- submitted=true;
-
+ let name=document.getElementById("username").value;
  let score=0;
- questions.forEach((q,i)=>{ if(answers[i]===q.answer) score++; });
+
+ questions.forEach((q,i)=>{
+  if(answers[i]==q.answer) score++;
+ });
+
+ // save result
+ let results=JSON.parse(localStorage.getItem("results"))||[];
+ results.push({name,score});
+ localStorage.setItem("results",JSON.stringify(results));
 
  document.getElementById("quizPage").classList.add("hidden");
  document.getElementById("resultPage").classList.remove("hidden");
-
- document.getElementById("score").innerText=`Score: ${score}/50`;
-
- let review="";
- questions.forEach((q,i)=>{
-  review+=`<p>${i+1}. ${q.q} → Correct: ${q.options[q.answer]}</p>`;
- });
-
- document.getElementById("review").innerHTML=review;
+ document.getElementById("score").innerText=`${name} Score: ${score}`;
 }
 
-loadQuiz();
+// ADMIN LOGIN
+function openAdmin(){
+ let pass=prompt("Enter Password");
+ if(pass==="Soumya@7890"){
+   document.getElementById("adminPage").classList.remove("hidden");
+   loadAdmin();
+ } else {
+   alert("Wrong password");
+ }
+}
+
+function closeAdmin(){
+ document.getElementById("adminPage").classList.add("hidden");
+}
+
+// add question
+function addQuestion(){
+ let q=document.getElementById("q").value;
+ let options=[
+  document.getElementById("o1").value,
+  document.getElementById("o2").value,
+  document.getElementById("o3").value,
+  document.getElementById("o4").value
+ ];
+ let answer=parseInt(document.getElementById("ans").value);
+
+ questions.push({q,options,answer});
+ localStorage.setItem("questions",JSON.stringify(questions));
+ loadAdmin();
+}
+
+// admin list
+function loadAdmin(){
+ let qhtml="";
+ questions.forEach((q,i)=>{
+  qhtml+=`<p>${q.q} <button onclick="deleteQ(${i})">❌</button></p>`;
+ });
+ document.getElementById("adminQuestions").innerHTML=qhtml;
+
+ let results=JSON.parse(localStorage.getItem("results"))||[];
+ let rhtml="";
+ results.forEach(r=>{
+  rhtml+=`<p>${r.name} → ${r.score}</p>`;
+ });
+ document.getElementById("results").innerHTML=rhtml;
+}
+
+// delete
+function deleteQ(i){
+ questions.splice(i,1);
+ localStorage.setItem("questions",JSON.stringify(questions));
+ loadAdmin();
+}
 
 </script>
 
