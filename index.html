@@ -3,155 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Full Stack Quiz</title>
+<title>Pro Quiz App</title>
 
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:#fff;
-}
-.container { 
-max-width:900px; 
-margin:auto; 
-padding:15px; 
-}
-
-.card { 
-background:rgba(255,255,255,0.08); 
-padding:20px; 
-border-radius:15px; 
-}
-
-.option { 
-  padding:10px; 
-  margin:5px 0; 
-  background:#444; 
-  border-radius:8px; 
-  cursor:pointer; 
-}
-
-.correct { background:#4CAF50 !important; }
-.wrong { background:#f44336 !important; }
-.explanation { font-size:13px; color:#ddd; }
-button { margin:5px; padding:10px; border:none; border-radius:8px; }
-.progress-bar { height:8px; background:#555; border-radius:5px; }
-.progress { height:8px; background:#00e676; width:0%; }
+body{margin:0;font-family:Arial;background:#0f2027;color:#fff}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{background:#203a43;padding:20px;border-radius:10px}
+.option{background:#444;margin:5px 0;padding:10px;border-radius:5px;cursor:pointer}
+.selected{background:#888}
+.correct{background:green!important}
+.wrong{background:red!important}
+.progress-bar{height:10px;background:#555;border-radius:5px}
+.progress{height:10px;background:#4CAF50;width:0%}
+.timer{margin:10px 0}
+button{margin:5px;padding:10px;border:none;border-radius:5px}
+.hidden{display:none}
 </style>
 
 </head>
 <body>
 
 <div class="container">
-<div class="card">
 
-<h2>🚀 Full Stack Quiz</h2>
+<div id="quizPage" class="card">
+<h2>🚀 Full Stack Exam</h2>
+
+<div class="timer">⏱ Time: <span id="time">300</span>s</div>
 <div class="progress-bar"><div id="progress" class="progress"></div></div>
+<p>📊 Attempted: <span id="attempted">0</span>/50</p>
+
 <div id="quiz"></div>
 
 <button onclick="prevPage()">Prev</button>
 <button onclick="nextPage()">Next</button>
 <button onclick="submitQuiz()">Submit</button>
-
-<h3 id="result"></h3>
-
 </div>
+
+<div id="resultPage" class="card hidden">
+<h2>🏁 Result</h2>
+<h3 id="score"></h3>
+<div id="review"></div>
+</div>
+
 </div>
 
 <script>
 
-const questions = [
-{q:"What does HTML stand for?",options:["Hyper Text Markup Language","High Text Machine Language","None","Tool"],answer:0,exp:"HTML defines structure of web pages."},
-{q:"CSS is used for?",options:["Logic","Styling","Database","Backend"],answer:1,exp:"CSS controls layout, colors, fonts."},
-{q:"JS runs where?",options:["Browser","DB","OS","Compiler"],answer:0,exp:"JavaScript runs in browser."},
-{q:"React is?",options:["Framework","Library","Language","DB"],answer:1,exp:"React is a UI library."},
-{q:"Node.js is?",options:["Frontend","Backend runtime","DB","Tool"],answer:1,exp:"Node runs JS on server."},
-{q:"Flexbox is used for?",options:["Layout","DB","Logic","Animation"],answer:0,exp:"Flexbox handles layout alignment."},
-{q:"DOM means?",options:["Document Object Model","Data Object Model","Design Model","None"],answer:0,exp:"DOM represents HTML structure."},
-{q:"let keyword?",options:["Variable","Loop","Function","None"],answer:0,exp:"let declares variable."},
-{q:"Arrow function?",options:["=>","function","loop","class"],answer:0,exp:"Arrow functions use => syntax."},
-{q:"JS datatype?",options:["String","Boolean","Number","All"],answer:3,exp:"All are JS datatypes."},
+// shuffle
+function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
 
-{q:"Express is?",options:["Framework","Language","DB","UI"],answer:0,exp:"Express is backend framework."},
-{q:"app.get() used for?",options:["GET","POST","DELETE","PUT"],answer:0,exp:"Handles GET requests."},
-{q:"Middleware?",options:["Function","DB","UI","None"],answer:0,exp:"Runs between request-response."},
-{q:"npm?",options:["Node Package Manager","Network","Tool","None"],answer:0,exp:"Manages packages."},
-{q:"REST API?",options:["Architecture","DB","UI","Lang"],answer:0,exp:"Standard API structure."},
-{q:"404?",options:["OK","Error","Not Found","Crash"],answer:2,exp:"404 means not found."},
-{q:"JWT?",options:["Auth","DB","UI","Style"],answer:0,exp:"JWT used for authentication."},
-{q:"Async/await?",options:["Async handling","Styling","DB","UI"],answer:0,exp:"Handles async code."},
-{q:"Callback?",options:["Function param","API","DB","Var"],answer:0,exp:"Function passed as argument."},
-{q:"Node is?",options:["Backend","Frontend","UI","Design"],answer:0,exp:"Node is backend runtime."},
+// questions
+const questions = shuffle([
+{q:"HTML stands for?",options:["Hyper Text Markup Language","Wrong","Wrong","Wrong"],answer:0},
+{q:"CSS used for?",options:["Logic","Styling","DB","Backend"],answer:1},
+{q:"JS runs in?",options:["Browser","DB","OS","None"],answer:0},
+{q:"React is?",options:["Framework","Library","Lang","DB"],answer:1},
+{q:"Node.js is?",options:["Frontend","Backend runtime","DB","Tool"],answer:1},
 
-{q:"MongoDB?",options:["NoSQL","SQL","Lang","Tool"],answer:0,exp:"MongoDB is NoSQL DB."},
-{q:"SQL stands for?",options:["Structured Query Language","Simple","System","None"],answer:0,exp:"SQL manages DB queries."},
-{q:"Primary key?",options:["Unique","Duplicate","Column","Table"],answer:0,exp:"Unique identifier."},
-{q:"SELECT?",options:["Fetch data","Insert","Delete","Update"],answer:0,exp:"SELECT retrieves data."},
-{q:"JOIN?",options:["Combine tables","Delete","Update","None"],answer:0,exp:"Join combines tables."},
-{q:"Index?",options:["Faster query","UI","API","None"],answer:0,exp:"Improves query speed."},
-{q:"Schema?",options:["Structure","UI","Code","API"],answer:0,exp:"Defines DB structure."},
-{q:"Aggregation?",options:["Process data","Style","UI","None"],answer:0,exp:"Transforms data."},
-{q:"ACID?",options:["Reliability","UI","API","None"],answer:0,exp:"Ensures DB consistency."},
-{q:"CORS?",options:["Security","UI","DB","None"],answer:0,exp:"Controls resource sharing."},
-
-{q:"Git?",options:["Version control","Lang","DB","UI"],answer:0,exp:"Tracks code changes."},
-{q:"API?",options:["Interface","DB","UI","None"],answer:0,exp:"Allows communication."},
-{q:"MVC?",options:["Pattern","Lang","DB","UI"],answer:0,exp:"Model View Controller."},
-{q:"Deployment?",options:["Hosting","Coding","Testing","Design"],answer:0,exp:"Publish app online."},
-{q:"Event Loop?",options:["JS engine","CSS","DB","None"],answer:0,exp:"Handles async tasks."},
-{q:"Closure?",options:["Function memory","Loop","API","None"],answer:0,exp:"Remembers outer scope."},
-{q:"Hoisting?",options:["Move up","Style","DB","None"],answer:0,exp:"JS moves declarations up."},
-{q:"SSR?",options:["Server render","Client","DB","None"],answer:0,exp:"Render on server."},
-{q:"WebSocket?",options:["Realtime","Style","DB","None"],answer:0,exp:"Real-time communication."},
-{q:"Docker?",options:["Container","DB","UI","None"],answer:0,exp:"Packages app."},
-
-{q:"CI/CD?",options:["Automation","UI","DB","None"],answer:0,exp:"Automates deployment."},
-{q:"Load Balancer?",options:["Traffic manager","UI","DB","None"],answer:0,exp:"Distributes load."},
-{q:"Microservices?",options:["Architecture","Lang","DB","UI"],answer:0,exp:"Small services."},
-{q:"Scalability?",options:["Handle growth","Style","DB","None"],answer:0,exp:"Handles more users."},
-{q:"HTTPS?",options:["Secure HTTP","DB","UI","None"],answer:0,exp:"Encrypted protocol."},
-{q:"Session?",options:["User data","UI","DB","None"],answer:0,exp:"Stores user state."},
-{q:"Cookies?",options:["Client storage","DB","UI","None"],answer:0,exp:"Stores small data."},
-{q:"CDN?",options:["Fast delivery","DB","UI","None"],answer:0,exp:"Content delivery network."},
-{q:"Babel?",options:["Transpiler","DB","UI","None"],answer:0,exp:"Converts JS code."},
-{q:"Webpack?",options:["Bundler","DB","UI","None"],answer:0,exp:"Bundles files."}
-];
+...Array.from({length:45},(_,i)=>({
+q:`Question ${i+6}`,
+options:shuffle(["Correct","Wrong1","Wrong2","Wrong3"]),
+answer:0
+}))
+]);
 
 let currentPage=0;
+const perPage=10;
 let answers=new Array(50).fill(null);
+let submitted=false;
 
-function loadQuiz(){
-  let quiz=document.getElementById("quiz");
-  quiz.innerHTML="";
-  let start=currentPage*10;
+// timer
+let time=300;
+setInterval(()=>{
+ if(time>0 && !submitted){
+  time--;
+  document.getElementById("time").innerText=time;
+ }
+ if(time===0){ submitQuiz(); }
+},1000);
 
-  for(let i=start;i<start+10;i++){
-    let q=questions[i];
-    let html=`<p>${i+1}. ${q.q}</p>`;
-    q.options.forEach((opt,j)=>{
-      html+=`<div class="option" onclick="select(${i},${j},this)">${opt}</div>`;
-    });
-    if(window.submitted){
-      html+=`<div class="explanation">💡 ${q.exp}</div>`;
-    }
-    quiz.innerHTML+=html;
-  }
+function updateProgress(){
+ document.getElementById("progress").style.width=((currentPage+1)/5)*100+"%";
 }
 
-function select(q,o,el){
-  answers[q]=o;
+function updateAttempted(){
+ let count=answers.filter(a=>a!==null).length;
+ document.getElementById("attempted").innerText=count;
+}
+
+function loadQuiz(){
+ let quiz=document.getElementById("quiz");
+ quiz.innerHTML="";
+ updateProgress();
+ updateAttempted();
+
+ let start=currentPage*perPage;
+
+ for(let i=start;i<start+perPage;i++){
+  let q=questions[i];
+  let html=`<p>${i+1}. ${q.q}</p>`;
+
+  q.options.forEach((opt,j)=>{
+   let cls="option";
+   if(answers[i]===j) cls+=" selected";
+   html+=`<div class="${cls}" onclick="select(${i},${j})">${opt}</div>`;
+  });
+
+  quiz.innerHTML+=html;
+ }
+}
+
+function select(q,o){
+ if(submitted) return;
+ answers[q]=o;
+ loadQuiz();
 }
 
 function nextPage(){ if(currentPage<4){currentPage++; loadQuiz();} }
 function prevPage(){ if(currentPage>0){currentPage--; loadQuiz();} }
 
 function submitQuiz(){
-  window.submitted=true;
-  let score=0;
-  questions.forEach((q,i)=>{ if(answers[i]===q.answer) score++; });
-  document.getElementById("result").innerText=`Score: ${score}/50`;
-  loadQuiz();
+ submitted=true;
+
+ let score=0;
+ questions.forEach((q,i)=>{ if(answers[i]===q.answer) score++; });
+
+ document.getElementById("quizPage").classList.add("hidden");
+ document.getElementById("resultPage").classList.remove("hidden");
+
+ document.getElementById("score").innerText=`Score: ${score}/50`;
+
+ let review="";
+ questions.forEach((q,i)=>{
+  review+=`<p>${i+1}. ${q.q} → Correct: ${q.options[q.answer]}</p>`;
+ });
+
+ document.getElementById("review").innerHTML=review;
 }
 
 loadQuiz();
