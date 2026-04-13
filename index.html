@@ -3,277 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz System Pro</title>
+<title>Premium Dashboard</title>
 
 <style>
+:root{
+  --bg1:#0f2027;
+  --bg2:#203a43;
+  --bg3:#2c5364;
+  --card:rgba(255,255,255,0.08);
+  --text:#fff;
+}
+
+body.light{
+  --bg1:#e0eafc;
+  --bg2:#cfdef3;
+  --bg3:#e0eafc;
+  --card:rgba(255,255,255,0.7);
+  --text:#111;
+}
+
 body{
   margin:0;
-  font-family:Arial;
-  background:#0f2027;
-  color:#fff;
+  font-family:'Segoe UI',sans-serif;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+  color:var(--text);
+  transition:0.5s;
 }
 
 .container{
-  max-width:500px;
-  margin:auto;
+  width:100%;
+  max-width:450px;
   padding:20px;
 }
 
 .card{
-  background:#203a43;
-  padding:20px;
-  border-radius:12px;
-  margin-top:20px;
+  background:var(--card);
+  backdrop-filter:blur(18px);
+  border-radius:20px;
+  padding:25px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.4);
+  transition:0.5s;
 }
 
+/* INPUTS */
 input{
   width:100%;
-  padding:12px;
-  margin:8px 0;
+  padding:14px;
+  margin:10px 0;
   border:none;
-  border-radius:6px;
+  border-radius:10px;
+  outline:none;
 }
 
+/* BUTTONS */
 button{
   width:100%;
-  padding:10px;
-  margin:5px 0;
+  padding:12px;
+  margin-top:10px;
   border:none;
-  border-radius:6px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#00c6ff,#0072ff);
+  color:#fff;
   cursor:pointer;
+  transition:0.3s;
 }
 
-.option{
-  background:#444;
+button:hover{
+  transform:scale(1.05);
+}
+
+.secondary{
+  background:rgba(255,255,255,0.25);
+}
+
+/* HEADER */
+h2{
+  text-align:center;
+}
+
+/* TOP BAR */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.toggleMode{
+  cursor:pointer;
+  font-size:14px;
+  padding:5px 10px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.2);
+}
+
+/* DASHBOARD */
+.dashboard{
+  display:none;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.stat{
+  background:rgba(255,255,255,0.1);
+  padding:12px;
+  border-radius:15px;
+  text-align:center;
+}
+
+/* CHART */
+canvas{
+  margin-top:15px;
+  background:rgba(255,255,255,0.1);
+  border-radius:15px;
   padding:10px;
-  margin:5px 0;
-  border-radius:5px;
-  cursor:pointer;
 }
 
-.selected{background:#888}
-.hidden{display:none}
-
-h2{text-align:center}
+/* FOOTER */
+.footer{
+  text-align:center;
+  margin-top:10px;
+  font-size:12px;
+  opacity:0.7;
+}
 </style>
-
 </head>
+
 <body>
 
 <div class="container">
 
-<!-- LOGIN -->
-<div id="loginPage" class="card">
-<h2>🔐 Login</h2>
-<input id="loginUser" placeholder="Username">
-<input id="loginPass" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<button onclick="showRegister()">Register</button>
-</div>
+  <!-- LOGIN -->
+  <div class="card" id="loginBox">
+    <h2>🔐 Premium Login</h2>
 
-<!-- REGISTER -->
-<div id="registerPage" class="card hidden">
-<h2>📝 Register</h2>
-<input id="regUser" placeholder="Username">
-<input id="regPass" type="password" placeholder="Password">
-<button onclick="register()">Create Account</button>
-<button onclick="backToLogin()">Back</button>
-</div>
+    <input placeholder="Enter Email">
+    <input type="password" placeholder="Password">
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="card hidden">
-<h2>🏠 Dashboard</h2>
+    <button onclick="login()">Login</button>
+    <button class="secondary">Register</button>
 
-<button onclick="startQuiz()">Start Quiz</button>
-<button onclick="viewResults()">View Results</button>
-<button onclick="openAdmin()">Admin Panel 🔐</button>
-<button onclick="logout()">Logout</button>
+    <div class="footer">✨ Secure System</div>
+  </div>
 
-<div id="resultList"></div>
-</div>
+  <!-- DASHBOARD -->
+  <div class="card dashboard" id="dashboard">
 
-<!-- QUIZ -->
-<div id="quizPage" class="card hidden">
-<h2>Quiz</h2>
-<div id="quiz"></div>
-<button onclick="submitQuiz()">Submit</button>
-</div>
+    <div class="topbar">
+      <h3>📊 Dashboard</h3>
+      <div class="toggleMode" onclick="toggleTheme()">🌙 / ☀️</div>
+    </div>
 
-<!-- RESULT -->
-<div id="resultPage" class="card hidden">
-<h2>Result</h2>
-<h3 id="score"></h3>
-<button onclick="goDashboard()">Back</button>
-</div>
+    <p>Welcome Back 👋</p>
 
-<!-- ADMIN -->
-<div id="adminPage" class="card hidden">
-<h2>👨‍💻 Admin Panel</h2>
+    <div class="cards">
+      <div class="stat">Users<br><b>120</b></div>
+      <div class="stat">Projects<br><b>45</b></div>
+      <div class="stat">Sales<br><b>89%</b></div>
+      <div class="stat">Messages<br><b>12</b></div>
+    </div>
 
-<input id="q" placeholder="Question">
-<input id="o1" placeholder="Option 1">
-<input id="o2" placeholder="Option 2">
-<input id="o3" placeholder="Option 3">
-<input id="o4" placeholder="Option 4">
-<input id="ans" placeholder="Answer index (0-3)">
+    <!-- CHART -->
+    <canvas id="chart" width="350" height="180"></canvas>
 
-<button onclick="addQuestion()">Add Question</button>
-
-<div id="adminQuestions"></div>
-
-<button onclick="closeAdmin()">Close</button>
-</div>
+    <button onclick="logout()">Logout</button>
+  </div>
 
 </div>
 
 <script>
-
-// USERS STORAGE
-let users = JSON.parse(localStorage.getItem("users")) || [];
-
-// QUESTIONS
-let questions = JSON.parse(localStorage.getItem("questions")) || [
-{q:"HTML stands for?",options:["Hyper Text Markup Language","Wrong","Wrong","Wrong"],answer:0}
-];
-
-let currentUser=null;
-let answers=[];
-
-// LOGIN
 function login(){
- let u=loginUser.value;
- let p=loginPass.value;
-
- let found=users.find(x=>x.u===u && x.p===p);
-
- if(found){
-  currentUser=u;
-  loginPage.classList.add("hidden");
-  dashboard.classList.remove("hidden");
- } else alert("Invalid login");
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  drawChart();
 }
 
-// REGISTER
-function register(){
- let u=regUser.value;
- let p=regPass.value;
-
- users.push({u,p});
- localStorage.setItem("users",JSON.stringify(users));
-
- alert("Registered!");
- backToLogin();
+function logout(){
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("loginBox").style.display="block";
 }
 
-function showRegister(){
- loginPage.classList.add("hidden");
- registerPage.classList.remove("hidden");
+/* DARK / LIGHT TOGGLE */
+function toggleTheme(){
+  document.body.classList.toggle("light");
 }
 
-function backToLogin(){
- registerPage.classList.add("hidden");
- loginPage.classList.remove("hidden");
+/* ANIMATED CHART */
+function drawChart(){
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
+
+  let data = [30, 60, 40, 80, 50, 90];
+  let i = 0;
+
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    for(let j=0;j<=i;j++){
+      ctx.fillStyle="#00c6ff";
+      ctx.fillRect(j*50+20, 150-data[j], 30, data[j]);
+    }
+
+    if(i < data.length){
+      i++;
+      requestAnimationFrame(animate);
+    }
+  }
+
+  animate();
 }
-
-// LOGOUT
-function logout(){ location.reload(); }
-
-// QUIZ
-function startQuiz(){
- dashboard.classList.add("hidden");
- quizPage.classList.remove("hidden");
-
- let html="";
- questions.forEach((q,i)=>{
-  html+=`<p>${i+1}. ${q.q}</p>`;
-  q.options.forEach((opt,j)=>{
-    html+=`<div class="option" onclick="select(${i},${j},this)">${opt}</div>`;
-  });
- });
-
- quiz.innerHTML=html;
-}
-
-function select(q,o,el){
- answers[q]=o;
- let opts=el.parentNode.querySelectorAll(".option");
- opts.forEach(x=>x.classList.remove("selected"));
- el.classList.add("selected");
-}
-
-// SUBMIT
-function submitQuiz(){
- let score=0;
- questions.forEach((q,i)=>{
-  if(answers[i]==q.answer) score++;
- });
-
- let results=JSON.parse(localStorage.getItem("results"))||[];
- results.push({user:currentUser,score});
- localStorage.setItem("results",JSON.stringify(results));
-
- quizPage.classList.add("hidden");
- resultPage.classList.remove("hidden");
- score.innerText=`Score: ${score}`;
-}
-
-// RESULTS
-function viewResults(){
- let results=JSON.parse(localStorage.getItem("results"))||[];
- let html="<h3>Results</h3>";
-
- results.forEach(r=>{
-  html+=`<p>${r.user} → ${r.score}</p>`;
- });
-
- resultList.innerHTML=html;
-}
-
-// ADMIN
-function openAdmin(){
- let pass=prompt("Enter Admin Password");
- if(pass==="Soumya@7890"){
-  adminPage.classList.remove("hidden");
-  loadAdmin();
- } else alert("Wrong password");
-}
-
-function closeAdmin(){
- adminPage.classList.add("hidden");
-}
-
-function addQuestion(){
- let newQ={
-  q:q.value,
-  options:[o1.value,o2.value,o3.value,o4.value],
-  answer:parseInt(ans.value)
- };
-
- questions.push(newQ);
- localStorage.setItem("questions",JSON.stringify(questions));
- loadAdmin();
-}
-
-function loadAdmin(){
- let html="";
- questions.forEach((q,i)=>{
-  html+=`<p>${q.q} <button onclick="del(${i})">❌</button></p>`;
- });
- adminQuestions.innerHTML=html;
-}
-
-function del(i){
- questions.splice(i,1);
- localStorage.setItem("questions",JSON.stringify(questions));
- loadAdmin();
-}
-
-// BACK
-function goDashboard(){
- resultPage.classList.add("hidden");
- dashboard.classList.remove("hidden");
-}
-
 </script>
 
 </body>
